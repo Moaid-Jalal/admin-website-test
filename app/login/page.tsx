@@ -38,10 +38,6 @@ export default function LoginPage() {
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    toast({
-      title: "Welcome to the Admin Panel",
-      description: "Please log in to continue.",
-    });
     setIsLoading(true);
     try {
       const res = await loginService.login(values.email, values.password);
