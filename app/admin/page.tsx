@@ -16,50 +16,6 @@ export default function AdminDashboard() {
     recentProjects: []
   });
 
-  // useEffect(() => {
-  //   const fetchStats = async () => {
-  //     try {
-  //       const token = localStorage.getItem('adminToken');
-        
-  //       const response = await fetch('/api/admin/stats', {
-  //         headers: {
-  //           'Authorization': `Bearer ${token}`
-  //         }
-  //       });
-  //       const data = await response.json();
-  //       setStats(data);
-  //     } catch (error) {
-  //       console.error('Error fetching stats:', error);
-  //     }
-  //   };
-
-  //   fetchStats();
-  // }, []);
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const projects = await projectsService.getProject();
-        // setStats((prevStats) => ({
-        //   ...prevStats,
-        //   totalProjects: projects.length,
-        //   recentProjects: projects.slice(0, 5),
-        // }));
-        console.log(projects)
-        toast({
-          title: "Projects Fetched",
-          description: `Fetched ${projects.length} projects successfully.`,
-          variant: 'default',
-          duration: 3000,
-        });
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-      }
-    };
-
-    fetchProjects();
-  }, []);
-
   const chartData = [
     { name: 'Jan', projects: 4 },
     { name: 'Feb', projects: 6 },
