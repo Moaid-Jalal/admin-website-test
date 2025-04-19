@@ -15,7 +15,7 @@ export class ApiError extends Error {
 
 export const messagesService = {
     async getMessages(): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/api/messages`, {
+        const response = await fetch(`${API_BASE_URL}/messages`, {
             method: "GET",
             credentials: "include"
         });
@@ -29,7 +29,7 @@ export const messagesService = {
     },
 
     async deleteMessage(messageId: string): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/api/messages/${messageId}`, {
+        const response = await fetch(`${API_BASE_URL}/messages/${messageId}`, {
             method: "DELETE",
             credentials: "include"
         });

@@ -15,7 +15,7 @@ export class ApiError extends Error {
 
 export const projectsService = {
     async getProject(offset: number): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/api/projects?offset=${offset}`, {
+        const response = await fetch(`${API_BASE_URL}/projects?offset=${offset}`, {
             method: "GET",
             credentials: "include"
         });
@@ -29,7 +29,7 @@ export const projectsService = {
     },
 
     async createProject(projectData: any): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/api/projects/create`, {
+        const response = await fetch(`${API_BASE_URL}/projects/create`, {
             method: "POST",
             credentials: "include",
             body: projectData
@@ -44,7 +44,7 @@ export const projectsService = {
     },
 
     async deleteProject(projectId: string): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/api/projects/delete/${projectId}`, {
+        const response = await fetch(`${API_BASE_URL}/projects/delete/${projectId}`, {
             method: "DELETE",
             credentials: "include"
         });
@@ -58,7 +58,7 @@ export const projectsService = {
     },
 
     async searchProject(query: string): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/api/projects/search?query=${encodeURIComponent(query)}`, {
+        const response = await fetch(`${API_BASE_URL}/projects/search?query=${encodeURIComponent(query)}`, {
             method: "GET",
         });
 

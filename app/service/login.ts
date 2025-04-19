@@ -15,7 +15,7 @@ export class ApiError extends Error {
 
 export const loginService = {
     async login(email: string, password: string): Promise<{ token: string }> {
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
