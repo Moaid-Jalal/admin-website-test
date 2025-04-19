@@ -19,9 +19,9 @@ const Navbar = () => {
   const NavItems = () => (
     <>
       <SheetClose asChild>
-        <Link href="/" className="w-full">
+        <Link href="/admin" className="w-full">
           <Button 
-            variant={isActive('/') ? 'default' : 'ghost'} 
+            variant={isActive('/admin') ? 'default' : 'ghost'} 
             className="w-full justify-start"
             size="sm"
           >
@@ -43,7 +43,7 @@ const Navbar = () => {
         </Link>
       </SheetClose>
       <SheetClose asChild>
-        <Link href="/about" className="w-full">
+        <Link href="/admin/about" className="w-full">
           <Button 
             variant={isActive('/about') ? 'default' : 'ghost'} 
             className="w-full justify-start"
@@ -55,7 +55,7 @@ const Navbar = () => {
         </Link>
       </SheetClose>
       <SheetClose asChild>
-        <Link href="/contact" className="w-full">
+        <Link href="/admin/contact" className="w-full">
           <Button 
             variant={isActive('/contact') ? 'default' : 'ghost'} 
             className="w-full justify-start"
@@ -71,10 +71,10 @@ const Navbar = () => {
 
   const DesktopNavItems = () => (
     <>
-      <Link href="/admin/contact">
+      <Link href="/admin">
         <Button variant={isActive('/') ? 'default' : 'ghost'}>
           <Home className="mr-2 h-4 w-4" />
-          contact
+          home
         </Button>
       </Link>
       <Link href="/admin/projects">
@@ -83,13 +83,13 @@ const Navbar = () => {
           Projects
         </Button>
       </Link>
-      <Link href="/about">
+      <Link href="/admin/about">
         <Button variant={isActive('/about') ? 'default' : 'ghost'}>
           <Users2 className="mr-2 h-4 w-4" />
           About
         </Button>
       </Link>
-      <Link href="/contact">
+      <Link href="/admin/contact">
         <Button variant={isActive('/contact') ? 'default' : 'ghost'}>
           <Phone className="mr-2 h-4 w-4" />
           Contact
