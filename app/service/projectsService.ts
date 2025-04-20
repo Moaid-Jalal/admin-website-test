@@ -14,10 +14,39 @@ export class ApiError extends Error {
 }
 
 export const projectsService = {
-    async getProject(offset: number): Promise<any> {
+    async getProjects(offset: number): Promise<any> {
         const response = await fetch(`${API_BASE_URL}/projects?offset=${offset}`, {
             method: "GET",
             credentials: "include"
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new ApiError(errorData);
+        }
+
+        return response.json();
+    },
+
+    async getProject(id: string): Promise<any> {
+        const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
+            method: "GET",
+            credentials: "include"
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new ApiError(errorData);
+        }
+
+        return response.json();
+    },
+
+    async updateProject(projectId: string, data: FormData) :  Promise<any> {
+        const response = await fetch(`${API_BASE_URL}/projects/update/${projectId}`, {
+            method: "PUT",
+            credentials: "include",
+            body: data
         });
 
         if (!response.ok) {

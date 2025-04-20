@@ -138,8 +138,8 @@ export default function NewProjectPage() {
       });
 
 
-
-      const response = await projectsService.createProject(formData)
+      console.log("form data:", Object.fromEntries(formData.entries()));
+      // const response = await projectsService.createProject(formData)
 
 
       toast({
@@ -147,7 +147,7 @@ export default function NewProjectPage() {
         description: "Project created successfully",
       });
 
-      router.push('/admin/projects');
+      // router.push('/admin/projects');
     } catch (error) {
       toast({
         title: "Error",
@@ -275,7 +275,7 @@ export default function NewProjectPage() {
               />
 
 
-<div>
+            <div>
                 <FormLabel>Project Images</FormLabel>
                 <div className="mt-2">
                   <Input

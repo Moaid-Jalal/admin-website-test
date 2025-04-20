@@ -1,189 +1,278 @@
 "use client"
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { ArrowLeft, Loader2, Star, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, X } from 'lucide-react';
+import { projectsService } from '@/app/service/projectsService';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
+import Image from 'next/image';
+import { resizeImage } from '../../resizeImage';
+import { useRouter } from 'next/navigation';
+
 
 const formSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
   }),
-  description: z.string().min(10, {
-    message: "Description must be at least 10 characters.",
-  }),
+  description: z.string(),
+  short_description: z.string(),
+  creation_date: z.string(),
   category: z.string().min(2, {
     message: "Category is required.",
   }),
-  location: z.string().min(2, {
-    message: "Location is required.",
-  }),
-  client: z.string().min(2, {
-    message: "Client name is required.",
-  }),
-  value: z.string().min(1, {
-    message: "Project value is required.",
-  }),
-  duration: z.string().min(2, {
-    message: "Duration is required.",
+  country: z.string().min(2, {
+    message: "Country is required.",
   }),
 });
 
 interface Project {
-  id: number;
+  id: string;
   title: string;
   description: string;
+  short_description: string;
   category: string;
-  location: string;
-  client: string;
-  value: string;
-  duration: string;
-  images: string[];
+  country: string;
+  creation_date: string;
+  images: Array<{
+    id: string;
+    url: string;
+    is_main: boolean;
+    display_order: number;
+  }>;
+}
+
+interface ImagePreview {
+  file: File;
+  preview: string;
+  isMain?: boolean;
 }
 
 export default function EditProjectPage({ params }: { params: { id: string } }) {
+  const projectId = params.id;
+
   const router = useRouter();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const [mainImageId, setMainImageId] = useState<string | null>(null);
+  const [tempMainImageId, setTempMainImageId] = useState<string | null>(null);
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
+  const [initialFormValues, setInitialFormValues] = useState<z.infer<typeof formSchema> | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
+      short_description: "",
       category: "",
-      location: "",
-      client: "",
-      value: "",
-      duration: "",
+      country: "",
+      creation_date: "",
     },
   });
 
   useEffect(() => {
     fetchProject();
-  }, [params.id]);
+  }, [projectId]);
 
   const fetchProject = async () => {
+    setIsLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`/api/projects/${params.id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
-      setProject(data);
-      form.reset({
-        title: data.title,
-        description: data.description,
-        category: data.category,
-        location: data.location,
-        client: data.client,
-        value: data.value,
-        duration: data.duration,
-      });
+      const res = await projectsService.getProject(projectId);
+      setProject(res);
+
+      const formValues = {
+        title: res.title,
+        description: res.description,
+        short_description: res.short_description,
+        category: res.category,
+        country: res.country,
+        creation_date: res.creation_date,
+      };
+
+      setInitialFormValues(formValues);
+      form.reset(formValues);
+
+      const mainImage = res.images.find(img => img.is_main);
+      if (mainImage) {
+        setMainImageId(mainImage.id);
+        setTempMainImageId(mainImage.id);
+      }
+
+      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching project:', error);
       toast({
+        variant: "destructive",
         title: "Error",
         description: "Failed to fetch project details",
-        variant: "destructive",
       });
+      setIsLoading(false);
     }
   };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
+  const getChangedFields = (values: z.infer<typeof formSchema>) => {
+    if (!initialFormValues) return values;
+
+    const changedFields: Partial<z.infer<typeof formSchema>> = {};
+    
+    (Object.keys(values) as Array<keyof typeof values>).forEach(key => {
+      if (values[key] !== initialFormValues[key]) {
+        changedFields[key] = values[key];
+      }
+    });
+
+    return changedFields;
+  };
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSaving(true);
     try {
       const formData = new FormData();
-      Object.entries(values).forEach(([key, value]) => {
+      const changedFields = getChangedFields(values);
+
+      // Only add changed form values
+      Object.entries(changedFields).forEach(([key, value]) => {
         formData.append(key, value);
       });
 
-      if (selectedFiles) {
-        Array.from(selectedFiles).forEach((file) => {
-          formData.append('images', file);
+      // Add new images only if there are any
+      if (imagePreviews.length > 0) {
+        imagePreviews.forEach(preview => {
+          formData.append('images', preview.file);
         });
       }
 
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`/api/projects/${params.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update project');
+      // Add images to delete only if there are any
+      if (imagesToDelete.length > 0) {
+        formData.append('imagesToDelete', JSON.stringify(imagesToDelete));
       }
 
-      toast({
-        title: "Success",
-        description: "Project updated successfully",
-      });
-      router.push('/admin/projects');
+      // Add main image ID only if it changed
+      if (tempMainImageId !== mainImageId) {
+        formData.append('mainImageId', tempMainImageId || '');
+      }
+
+      // Only proceed with the update if there are actual changes
+      const hasChanges = 
+        Object.keys(changedFields).length > 0 || 
+        imagePreviews.length > 0 || 
+        imagesToDelete.length > 0 || 
+        tempMainImageId !== mainImageId;
+
+      if (hasChanges) {
+        await projectsService.updateProject(projectId, formData);
+        toast({
+          title: "Success",
+          description: "Project updated successfully",
+        });
+      } else {
+        toast({
+          title: "Info",
+          description: "No changes to save",
+        });
+        return;
+      }
+
+      // Navigate back to project details
+      router.push(`/admin/projects`);
     } catch (error) {
+      console.error('Error updating project:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update project",
         variant: "destructive",
+        title: "Error",
+        description: "Failed to update project",
       });
     } finally {
-      setIsLoading(false);
-    }
-  }
-
-  const handleDeleteImage = async (imageUrl: string) => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`/api/projects/${params.id}/images`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ imageUrl }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete image');
-      }
-
-      setProject(prev => prev ? {
-        ...prev,
-        images: prev.images.filter(img => img !== imageUrl)
-      } : null);
-
-      toast({
-        title: "Success",
-        description: "Image deleted successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete image",
-        variant: "destructive",
-      });
+      setIsSaving(false);
     }
   };
 
-  if (!project) {
+  const handleDeleteImage = (imageId: string) => {
+    setImagesToDelete(prev => [...prev, imageId]);
+    
+    setProject(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        images: prev.images.filter(img => img.id !== imageId)
+      };
+    });
+
+    if (tempMainImageId === imageId) {
+      const remainingImages = project?.images.filter(img => img.id !== imageId);
+      if (remainingImages?.length) {
+        setTempMainImageId(remainingImages[0].id);
+      } else {
+        setTempMainImageId(null);
+      }
+    }
+  };
+
+  const handleSetMainImage = (imageId: string) => {
+    setTempMainImageId(imageId);
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+  
+    const newPreviews: ImagePreview[] = [];
+  
+    for (const file of Array.from(files)) {
+      try {
+        const resizedFile = await resizeImage(file, 800, 800);
+  
+        newPreviews.push({
+          file: resizedFile,
+          preview: URL.createObjectURL(resizedFile),
+        });
+      } catch (error) {
+        console.error("Error resizing image:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to process image",
+        });
+      }
+    }
+
+    setImagePreviews([...imagePreviews, ...newPreviews]);
+  };
+
+  const removeImage = (index: number) => {
+    setImagePreviews(previews => {
+      const newPreviews = [...previews];
+      URL.revokeObjectURL(previews[index].preview);
+      newPreviews.splice(index, 1);
+      return newPreviews;
+    });
+  };
+
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-full">
+      <div className="flex justify-center items-center h-[50vh]">
         <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!project && !isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh]">
+        <p className="text-lg text-muted-foreground mb-4">Project not found</p>
+        <Button onClick={() => router.push('/projects')}>
+          Return to Projects
+        </Button>
       </div>
     );
   }
@@ -191,16 +280,14 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/admin/projects">
-          <Button variant="ghost">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Projects
-          </Button>
-        </Link>
+        <Button variant="ghost" onClick={() => router.push('/projects')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Projects
+        </Button>
         <h1 className="text-3xl font-bold">Edit Project</h1>
       </div>
 
-      <Card>
+      <Card className="animate-in fade-in-50 duration-300">
         <CardHeader>
           <CardTitle>Project Details</CardTitle>
         </CardHeader>
@@ -238,12 +325,12 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
 
                 <FormField
                   control={form.control}
-                  name="location"
+                  name="country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Location</FormLabel>
+                      <FormLabel>Country</FormLabel>
                       <FormControl>
-                        <Input placeholder="Project location" {...field} />
+                        <Input placeholder="Project country" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -252,46 +339,36 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
 
                 <FormField
                   control={form.control}
-                  name="client"
+                  name="creation_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Client</FormLabel>
+                      <FormLabel>Creation date</FormLabel>
                       <FormControl>
-                        <Input placeholder="Client name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="value"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Project Value</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., $1,000,000" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="duration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Duration</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., 12 months" {...field} />
+                        <Input placeholder="2024, 2025" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="short_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Short description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Short description"
+                        className="min-h-[50px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -311,52 +388,116 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
                 )}
               />
 
-              <div>
-                <FormLabel>Current Images</FormLabel>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                  {project.images.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={image}
-                        alt={`Project image ${index + 1}`}
-                        className="w-full h-40 object-cover rounded-lg"
-                      />
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleDeleteImage(image)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+              {project && project.images.length > 0 && (
+                <div className="space-y-2">
+                  <FormLabel>Current Images</FormLabel>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
+                    {project.images.map((image) => (
+                      <div key={image.id} className="relative group border rounded-lg p-1 overflow-hidden transition-all hover:shadow-md">
+                        <div className="aspect-square relative">
+                          <Image
+                            src={image.url}
+                            alt="Project"
+                            fill
+                            priority
+                            quality={80}
+                            sizes="(max-width: 640px) 40vw, (max-width: 768px) 30vw, 20vw"
+                            className={`object-cover rounded-lg transition-all ${image.id === tempMainImageId ? 'ring-2 ring-primary' : ''}`}
+                          />
+                        </div>
+                        {image.id === tempMainImageId && (
+                          <span className="absolute top-2 left-2 bg-white rounded-full p-1 shadow">
+                            <Star className="h-5 w-5 text-yellow-500" />
+                          </span>
+                        )}
+                        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleDeleteImage(image.id)}
+                            className="h-8 w-8"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          {image.id !== tempMainImageId && (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="icon"
+                              onClick={() => handleSetMainImage(image.id)}
+                              title="Set as main image"
+                              className="h-8 w-8"
+                            >
+                              <Star className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div>
+              <div className="space-y-2">
                 <FormLabel>Add New Images</FormLabel>
                 <div className="mt-2">
                   <Input
                     type="file"
                     multiple
                     accept="image/*"
-                    onChange={(e) => setSelectedFiles(e.target.files)}
+                    onChange={handleImageChange}
+                    className="cursor-pointer"
                   />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Images will be resized to 800x800px maximum dimensions
+                  </p>
                 </div>
+                {imagePreviews.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative group border rounded-lg p-1 overflow-hidden">
+                        <div className="aspect-square relative">
+                          <img
+                            src={preview.preview}
+                            alt={`Preview ${index + 1}`}
+                            className="absolute inset-0 w-full h-full object-cover rounded-lg transition-all"
+                          />
+                        </div>
+                        <div className="absolute top-2 right-2 flex gap-2">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImage(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end gap-4 pt-4">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.push('/admin/projects')}
+                  onClick={() => router.push('/projects')}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Update Project
+                <Button type="submit" disabled={isSaving} className="min-w-[120px]">
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </Button>
               </div>
             </form>

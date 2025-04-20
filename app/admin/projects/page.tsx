@@ -85,7 +85,7 @@ export default function ProjectsPage() {
 
   const fetchProjects = async () => {
     try {
-      const res = await projectsService.getProject(offset)
+      const res = await projectsService.getProjects(offset)
 
       setProjects(res);
     } catch (error) {
