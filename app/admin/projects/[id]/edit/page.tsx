@@ -110,7 +110,8 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       form.reset(formValues);
 
 
-      const mainImage = res.images.find((img: ProjectImage) => img.is_main);
+      const  mainImage = res.images.find((img: ProjectImage) => img.is_main);
+
       if (mainImage) {
         setMainImageId(mainImage.id);
         setTempMainImageId(mainImage.id);
