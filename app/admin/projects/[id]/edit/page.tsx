@@ -32,6 +32,13 @@ const formSchema = z.object({
   }),
 });
 
+interface ProjectImage {
+  id: string;
+  url: string;
+  is_main: boolean;
+  display_order: number;
+}
+
 interface Project {
   id: string;
   title: string;
@@ -102,7 +109,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       setInitialFormValues(formValues);
       form.reset(formValues);
 
-      const mainImage = res.images.find(img => img.is_main);
+      const mainImage = res.images.find((img: ProjectImage) => img.is_main);
       if (mainImage) {
         setMainImageId(mainImage.id);
         setTempMainImageId(mainImage.id);
@@ -182,7 +189,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         });
         return;
       }
-
+      
       // Navigate back to project details
       router.push(`/admin/projects`);
     } catch (error) {
