@@ -17,11 +17,15 @@ interface Message {
 
 export default function AdminContactPage() {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const { toast } = useToast();
 
+  
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -36,6 +40,11 @@ export default function AdminContactPage() {
 
     fetchMessages();
   }, []);
+
+  const loadMore = () => {
+    if (!hasMore || loading) return;
+    setOffset((prev) => prev + 10);
+  };
 
 
   const handleDelete = async (id: string) => {

@@ -143,6 +143,7 @@ export default function ProjectsPage() {
           <Loader2 className="h-8 w-8 animate-spin text-white" />
         </div>
       )}
+
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Projects</h1>
         <Link href="/admin/projects/new">

@@ -58,7 +58,7 @@ export default function AdminLayout({
       <main className={cn(
         "bg-background flex-grow",
       )}>
-        <div className="p-4 md:p-32 flex flex-col">
+        <div className="p-4 md:p-32 py-20 flex flex-col">
           {children}
         </div>
       </main>

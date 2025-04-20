@@ -115,6 +115,7 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Navigation */}
+
           <div className="flex items-center md:hidden">
             <Sheet>
               <SheetTrigger asChild>
@@ -129,6 +130,7 @@ const Navbar = () => {
               </SheetContent>
             </Sheet>
           </div>
+
         </div>
       </div>
     </nav>
