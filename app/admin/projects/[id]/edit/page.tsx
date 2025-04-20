@@ -1,5 +1,6 @@
 "use client"
 
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +16,6 @@ import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { resizeImage } from '../../resizeImage';
 import { useRouter } from 'next/navigation';
-
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -143,6 +143,8 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
     return changedFields;
   };
 
+  
+  
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSaving(true);
     try {
@@ -205,6 +207,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       setIsSaving(false);
     }
   };
+
 
   const handleDeleteImage = (imageId: string) => {
     setImagesToDelete(prev => [...prev, imageId]);
@@ -507,7 +510,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
                   ) : (
                     "Save Changes"
                   )}
-                </Button>
+                    </Button>
               </div>
             </form>
           </Form>
