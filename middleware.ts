@@ -10,6 +10,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  
   if (pathname.startsWith('/admin') && !token) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
