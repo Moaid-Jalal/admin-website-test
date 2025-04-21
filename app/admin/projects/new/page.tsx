@@ -137,9 +137,7 @@ export default function NewProjectPage() {
         formData.append('images', preview.file);
       });
 
-
-      console.log("form data:", Object.fromEntries(formData.entries()));
-      // const response = await projectsService.createProject(formData)
+      const response = await projectsService.createProject(formData)
 
 
       toast({
@@ -147,7 +145,7 @@ export default function NewProjectPage() {
         description: "Project created successfully",
       });
 
-      // router.push('/admin/projects');
+      router.push('/admin/projects');
     } catch (error) {
       toast({
         title: "Error",

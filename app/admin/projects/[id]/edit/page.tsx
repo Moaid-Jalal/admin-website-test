@@ -67,6 +67,8 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+
   const { toast } = useToast();
   const [mainImageId, setMainImageId] = useState<string | null>(null);
   const [tempMainImageId, setTempMainImageId] = useState<string | null>(null);
@@ -92,6 +94,8 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
   }, [projectId]);
 
   const fetchProject = async () => {
+    if(isLoading) return;
+
     setIsLoading(true);
     try {
       const res = await projectsService.getProject(projectId);
@@ -119,12 +123,13 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
 
       setIsLoading(false);
     } catch (error) {
-      console.error('Error fetching project:', error);
+      setIsError(true)
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to fetch project details",
       });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -278,12 +283,12 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
     );
   }
 
-  if (!project && !isLoading) {
+  if (isError) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh]">
         <p className="text-lg text-muted-foreground mb-4">Project not found</p>
-        <Button onClick={() => router.push('/projects')}>
-          Return to Projects
+        <Button onClick={fetchProject} variant="outline">
+          refetch Project
         </Button>
       </div>
     );
@@ -292,7 +297,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={() => router.push('/projects')}>
+        <Button variant="ghost" onClick={() => router.push('/admin/projects')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Projects
         </Button>
@@ -461,9 +466,6 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
                     onChange={handleImageChange}
                     className="cursor-pointer"
                   />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Images will be resized to 800x800px maximum dimensions
-                  </p>
                 </div>
                 {imagePreviews.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">

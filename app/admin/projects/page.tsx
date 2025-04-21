@@ -36,10 +36,14 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
 
   const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  
+  const [isError, setIsError] = useState(false);
 
   const [loadingDelete, setLoadingDelete] = useState(false);
 
@@ -84,19 +88,38 @@ export default function ProjectsPage() {
 
 
   const fetchProjects = async () => {
+    if (!hasMore || isInitialLoading || isFetchingMore) return;
+  
+    if (isFirstLoad) {
+      setIsInitialLoading(true);
+      setIsFirstLoad(false);
+    } else {
+      setIsFetchingMore(true);
+    }
+  
     try {
-      const res = await projectsService.getProjects(offset)
-
-      setProjects(res);
+      const res = await projectsService.getProjects(offset);
+  
+      setHasMore(res.length === 10);
+      setOffset((prevOffset) => prevOffset + res.length);
+  
+      setProjects((prevProjects) => [...prevProjects, ...res]);
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      if(projects.length === 0) {
+        setIsFirstLoad(true);
+      }
+      setIsError(true)
       toast({
         title: "Error",
         description: "Failed to fetch projects",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      if (isFirstLoad) {
+        setIsInitialLoading(false);
+      } else {
+        setIsFetchingMore(false);
+      }
     }
   };
 
@@ -135,6 +158,18 @@ export default function ProjectsPage() {
     setSearchTerm('');
     setIsSearching(false);
   };
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh]">
+        <p className="text-lg text-muted-foreground mb-4">Project not found</p>
+        <Button onClick={fetchProjects} variant="outline">
+          refetch Project
+        </Button>
+      </div>
+    );
+  }
+
 
   return (
     <div className="space-y-6">
@@ -184,7 +219,7 @@ export default function ProjectsPage() {
 
 
 
-          {isLoading ? (
+          {isInitialLoading ? (
             <div className="flex justify-center items-center h-32">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
@@ -248,49 +283,72 @@ export default function ProjectsPage() {
             </div>
           ) : (
             <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Category</TableHead>
-                  <TableHead>Country</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects.map((project) => (
-                <TableRow key={project.id}>
-                  <TableCell>{project.title}</TableCell>
-                  <TableCell>{project.category}</TableCell>
-                  <TableCell>{project.country}</TableCell>
-                  <TableCell>
-                    {new Date(project.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => router.push(`/admin/projects/${project.id}/edit`)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      disabled={loadingDelete}
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:text-red-600"
-                      onClick={() => handleDelete(project.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Category</TableHead>
+                    <TableHead>Country</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
+              </TableHeader>
+              <TableBody>
+                {projects.map((project) => (
+                  <TableRow key={project.id}>
+                    <TableCell>{project.title}</TableCell>
+                    <TableCell>{project.category}</TableCell>
+                    <TableCell>{project.country}</TableCell>
+                    <TableCell>
+                      {new Date(project.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => router.push(`/admin/projects/${project.id}/edit`)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        disabled={loadingDelete}
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-600"
+                        onClick={() => handleDelete(project.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
             </Table>
           )}
 
-          {projects.length === 0 && !isLoading && searchTerm.length === 0 &&(
+          {hasMore && !isInitialLoading && projects.length > 0 && (
+            <div className="flex justify-center mt-6">
+              <Button
+                variant="outline"
+                size="lg"
+                className="flex items-center gap-2 px-8 py-2 rounded-full shadow"
+                onClick={fetchProjects}
+                disabled={isFetchingMore}
+              >
+                {isFetchingMore ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Loading...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>load more</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {projects.length === 0 && !isInitialLoading && searchTerm.length === 0 &&(
             <div className="flex justify-center items-center h-32">
               <p className="text-muted-foreground">No projects found</p>
             </div>

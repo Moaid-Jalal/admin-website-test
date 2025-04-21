@@ -89,6 +89,7 @@ export const projectsService = {
     async searchProject(query: string): Promise<any> {
         const response = await fetch(`${API_BASE_URL}/projects/search?query=${encodeURIComponent(query)}`, {
             method: "GET",
+            credentials: "include"
         });
 
         if (!response.ok) {
