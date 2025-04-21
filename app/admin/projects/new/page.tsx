@@ -137,7 +137,7 @@ export default function NewProjectPage() {
         formData.append('images', preview.file);
       });
 
-      const response = await projectsService.createProject(formData)
+      await projectsService.createProject(formData)
 
 
       toast({
