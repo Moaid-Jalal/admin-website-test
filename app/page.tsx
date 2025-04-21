@@ -10,6 +10,12 @@ export default function Home() {
           Login <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </Link>
+
+      <Link href="/dashboard">
+        <Button variant={"outline"} className="ml-4">
+          Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </Link>
     </div>
   )
 }

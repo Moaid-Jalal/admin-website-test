@@ -2,12 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, Home, LayoutDashboard, FolderPlus, Users, MessageSquare, Settings, LogOut, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 import Navbar from '@/components/navbar';
+import { loginService } from '../service/login';
 
 export default function AdminLayout({
   children,
@@ -15,41 +12,21 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { theme, setTheme } = useTheme();
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await loginService.checkAuth();
+      } catch (err) {
+        router.push('/login');
+      }
+    };
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    router.push('/login');
-  };
-
-  const menuItems = [
-    { icon: Home, label: 'home' },
-    { icon: Users, label: 'admins' },
-    { icon: MessageSquare, label: 'massages' },
-    { icon: Settings, label: 'projects' },
-  ];
-
+    checkAuth();
+  }, [router]);
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Mobile Header */}
-
-      {/* <div className="bg-gray-900 text-white p-4 flex justify-between items-center shadow-lg">
-        <div className="flex items-center gap-2">
-          <Building2 className="h-6 w-6" />
-          <span className="font-bold">Admin Panel</span>
-        </div>
-        <Button variant="ghost" size="icon" onClick={toggleSidebar}>
-          {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
-      </div> */}
 
       <Navbar />
 

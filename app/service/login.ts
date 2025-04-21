@@ -44,5 +44,19 @@ export const loginService = {
         }
 
         return response.json();
+    },
+
+    async checkAuth(): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/auth/check`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new ApiError(errorData);
+        }
+
+        return response.json();
     }
 }; 
