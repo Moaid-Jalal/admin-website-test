@@ -11,9 +11,9 @@ export default function Home() {
         </Button>
       </Link>
 
-      <Link href="/dashboard">
+      <Link href="/admin">
         <Button variant={"outline"} className="ml-4">
-          Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+          admin <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </Link>
     </div>
