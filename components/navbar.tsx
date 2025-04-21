@@ -1,19 +1,42 @@
 "use client"
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Building2, Home, Phone, Users2, Menu, X } from 'lucide-react'
+import { Building2, Home, Phone, Users2, Menu, X, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
+import { loginService } from '@/app/service/login'
+import { useToast } from '@/hooks/use-toast'
 
 
 
 const Navbar = () => {
   const pathname = usePathname()
-  
+  const router = useRouter()
+  const { toast } = useToast()
+
   const isActive = (path: string) => {
     return pathname === path
+  }
+
+  const logout = async () => {
+    try {
+      await loginService.logout()
+
+      router.push('/login')
+      toast({
+        title: "Success",
+        description: "Logged out successfully",
+        variant: "default",
+      })
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive",
+      })
+    }
   }
 
   const NavItems = () => (
@@ -66,6 +89,18 @@ const Navbar = () => {
           </Button>
         </Link>
       </SheetClose>
+      <SheetClose asChild>
+        <div className="w-full">
+          <Button 
+            variant={'destructive'} 
+            className="w-full justify-start"
+            size="sm"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            logout
+          </Button>
+        </div>
+      </SheetClose>
     </>
   )
 
@@ -95,6 +130,17 @@ const Navbar = () => {
           Contact
         </Button>
       </Link>
+      <div>
+        <Button
+          onClick={logout}
+          variant={'destructive'} 
+          className="w-full justify-start"
+          size="sm"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          logout
+        </Button>
+      </div>
     </>
   )
 

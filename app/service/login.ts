@@ -30,5 +30,19 @@ export const loginService = {
         }
 
         return response.json();
+    },
+
+    async logout(): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new ApiError(errorData);
+        }
+
+        return response.json();
     }
 }; 
