@@ -15,15 +15,16 @@ export default function AdminLayout({
 
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        await loginService.checkAuth();
-      } catch (err) {
-        router.push('/login');
-      }
+        try {
+            await loginService.checkAuth();
+        } catch (err) {
+            console.error('Redirecting to login due to authentication failure:', err);
+            router.push('/login'); 
+        }
     };
 
-    checkAuth();
-  }, [router]);
+    checkAuth();  
+}, [router]); 
 
   return (
     <div className="min-h-screen flex flex-col">

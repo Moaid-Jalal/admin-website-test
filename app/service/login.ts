@@ -47,16 +47,22 @@ export const loginService = {
     },
 
     async checkAuth(): Promise<void> {
-        const response = await fetch(`${API_BASE_URL}/auth/check`, {
-            method: 'GET',
-            credentials: 'include',
-        });
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/check`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Authentication check failed:', errorData);
+                throw new ApiError(errorData);  
+            }
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new ApiError(errorData);
+            const data = await response.json(); 
+            return data;  
+        } catch (err) {
+            throw err;
         }
-
-        return response.json();
     }
 }; 
