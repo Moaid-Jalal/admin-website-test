@@ -6,20 +6,17 @@ import Link from "next/link";
 
 export default function AdminDashboard() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-10">
-      <div className='w-full text-center'>
-        <p className="text-2xl font-bold">There will be something else here.</p>
-      </div>
-
+    <div className="flex flex-col items-center justify-center min-h-screen gap-10 bg-[#0d0d0d] px-4 py-10">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
+        
         {/* Contact Card */}
         <Link href="/admin/contact" className="block">
-          <Card className="hover:shadow-xl transition cursor-pointer bg-white border border-gray-200">
+          <Card className="bg-[#1a1a1a] border border-gray-800 hover:border-gray-600 hover:shadow-md transition cursor-pointer">
             <CardHeader className="flex items-center justify-center">
-              <Phone className="h-10 w-10 text-primary" />
-              <CardTitle className="mt-2 text-center text-2xl">Contact</CardTitle>
+              <Phone className="h-10 w-10 text-white" />
+              <CardTitle className="mt-2 text-center text-2xl text-white">Contact</CardTitle>
             </CardHeader>
-            <CardContent className="text-center text-sm text-muted-foreground">
+            <CardContent className="text-center text-sm text-gray-400">
               Manage contact information
             </CardContent>
           </Card>
@@ -27,12 +24,12 @@ export default function AdminDashboard() {
 
         {/* About Card */}
         <Link href="/admin/about" className="block">
-          <Card className="hover:shadow-xl transition cursor-pointer bg-white border border-gray-200">
+          <Card className="bg-[#1a1a1a] border border-gray-800 hover:border-gray-600 hover:shadow-md transition cursor-pointer">
             <CardHeader className="flex items-center justify-center">
-              <Info className="h-10 w-10 text-primary" />
-              <CardTitle className="mt-2 text-center text-2xl">About</CardTitle>
+              <Info className="h-10 w-10 text-white" />
+              <CardTitle className="mt-2 text-center text-2xl text-white">About</CardTitle>
             </CardHeader>
-            <CardContent className="text-center text-sm text-muted-foreground">
+            <CardContent className="text-center text-sm text-gray-400">
               Edit about us & company info
             </CardContent>
           </Card>
@@ -40,16 +37,17 @@ export default function AdminDashboard() {
 
         {/* Projects Card */}
         <Link href="/admin/projects" className="block">
-          <Card className="hover:shadow-xl transition cursor-pointer bg-white border border-gray-200">
+          <Card className="bg-[#1a1a1a] border border-gray-800 hover:border-gray-600 hover:shadow-md transition cursor-pointer">
             <CardHeader className="flex items-center justify-center">
-              <Building2 className="h-10 w-10 text-primary" />
-              <CardTitle className="mt-2 text-center text-2xl">Projects</CardTitle>
+              <Building2 className="h-10 w-10 text-white" />
+              <CardTitle className="mt-2 text-center text-2xl text-white">Projects</CardTitle>
             </CardHeader>
-            <CardContent className="text-center text-sm text-muted-foreground">
+            <CardContent className="text-center text-sm text-gray-400">
               View and manage projects
             </CardContent>
           </Card>
         </Link>
+
       </div>
     </div>
   );
