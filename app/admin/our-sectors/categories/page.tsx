@@ -83,13 +83,13 @@ export default function CategoriesPage() {
           </Button>
           <h1 className="text-3xl font-bold">Categories</h1>
         </div>
+      </div>
         <Link href="/admin/our-sectors/categories/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Add New Category
           </Button>
         </Link>
-      </div>
 
       <Card>
         <CardHeader>
