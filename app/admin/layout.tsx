@@ -43,7 +43,6 @@ export default function AdminLayout({
               {children}
             </div>
           </main>
-        
         </>
       )}
     </div>
