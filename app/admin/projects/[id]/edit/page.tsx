@@ -199,6 +199,8 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
           title: "Success",
           description: "Project updated successfully",
         });
+
+        router.back();
       } else {
         toast({
           title: "Info",
