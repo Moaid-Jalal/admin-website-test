@@ -75,7 +75,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -84,8 +84,9 @@ export default function CategoriesPage() {
           <h1 className="text-3xl font-bold">Categories</h1>
         </div>
       </div>
+
         <Link href="/admin/our-sectors/categories/new">
-          <Button>
+          <Button className=''>
             <Plus className="mr-2 h-4 w-4" />
             Add New Category
           </Button>
