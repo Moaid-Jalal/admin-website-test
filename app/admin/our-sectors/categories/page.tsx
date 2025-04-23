@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Loader2, Cat, Pencil, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Loader2, Pencil, Trash2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import {
   Table,
@@ -120,8 +120,7 @@ export default function CategoriesPage() {
                         variant="link"
                         onClick={() => router.push(`/admin/our-sectors/categories/${cat.name}`)}
                       >
-                        <Cat className="h-4 w-4 mr-2" />
-                        View
+                        + View
                       </Button>
                     </TableCell>
                     <TableCell>{cat.project_count}</TableCell>
