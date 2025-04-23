@@ -54,14 +54,14 @@ const Navbar = () => {
         </Link>
       </SheetClose>
       <SheetClose asChild>
-        <Link href="/admin/projects" className="w-full">
+        <Link href="/admin/our-sectors/categories" className="w-full">
           <Button 
-            variant={isActive('/projects') ? 'default' : 'ghost'} 
+            variant={isActive('/our-sectors') ? 'default' : 'ghost'} 
             className="w-full justify-start"
             size="sm"
           >
             <Building2 className="mr-2 h-4 w-4" />
-            Projects
+            sectors
           </Button>
         </Link>
       </SheetClose>
@@ -112,10 +112,10 @@ const Navbar = () => {
           home
         </Button>
       </Link>
-      <Link href="/admin/projects">
-        <Button variant={isActive('/projects') ? 'default' : 'ghost'}>
+      <Link href="/admin/our-sectors/categories">
+        <Button variant={isActive('/our-sectors') ? 'default' : 'ghost'}>
           <Building2 className="mr-2 h-4 w-4" />
-          Projects
+          sectors
         </Button>
       </Link>
       <Link href="/admin/about">
