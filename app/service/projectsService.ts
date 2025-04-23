@@ -1,4 +1,6 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+import useSWRInfinite  from 'swr/infinite';
+import { API_BASE_URL } from "@/app/config/apiUrl"; 
+import { useSWRConfig } from 'swr';
 
 export class ApiError extends Error {
     data: any;
@@ -14,19 +16,53 @@ export class ApiError extends Error {
 }
 
 export const projectsService = {
-    async getProjects(offset: number): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/projects?offset=${offset}`, {
-            method: "GET",
-            credentials: "include"
+    useCategoryProjects(categoryName: string) {
+        const fetcher = async (url: string) => {
+            const res = await fetch(url, { credentials: 'include' });
+            if (!res.ok) throw new Error('Failed to fetch');
+            return res.json();
+        };
+
+        const { mutate } = useSWRConfig(); // ✅ استخدم نسخة mutate العامة
+
+        const getKey = (pageIndex: number, previousPageData: any) => {
+            if (previousPageData && previousPageData.length < 10) return null;
+            const offset = pageIndex * 10;
+            return `${API_BASE_URL}/categories/${categoryName}/projects?offset=${offset}`;
+        };
+    
+        const {
+            data,
+            error,
+            size,
+            setSize,
+            isValidating,
+        } = useSWRInfinite(getKey, fetcher, {
+            revalidateOnFocus: false,
+            revalidateOnReconnect: true,
+            dedupingInterval: 1000 * 60 * 10,
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new ApiError(errorData);
-        }
-
-        return response.json();
+        const refetch = async () => {
+            if (!error) return; 
+            for (let i = 0; i < size; i++) {
+                const key = getKey(i, i === 0 ? null : data?.[i - 1]);
+                if (key) await mutate(key, undefined);
+            }
+        };
+    
+        return {
+            projects: data ? data.flat() : [],
+            error,
+            isLoading: !data && !error,
+            isValidating,
+            loadMore: () => setSize(size + 1),
+            hasMore: data ? data[data.length - 1]?.length === 10 : false,
+            refetch,
+        };
     },
+
+
 
     async getProject(id: string): Promise<any> {
         const response = await fetch(`${API_BASE_URL}/projects/${id}`, {

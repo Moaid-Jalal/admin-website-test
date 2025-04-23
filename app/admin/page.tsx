@@ -36,14 +36,14 @@ export default function AdminDashboard() {
         </Link>
 
         {/* Projects Card */}
-        <Link href="/admin/projects" className="block">
+        <Link href="/admin/our-sectors/categories" className="block">
           <Card className="bg-[#1a1a1a] border border-gray-800 hover:border-gray-600 hover:shadow-md transition cursor-pointer">
             <CardHeader className="flex items-center justify-center">
               <Building2 className="h-10 w-10 text-white" />
-              <CardTitle className="mt-2 text-center text-2xl text-white">Projects</CardTitle>
+              <CardTitle className="mt-2 text-center text-2xl text-white">Our sectors</CardTitle>
             </CardHeader>
             <CardContent className="text-center text-sm text-gray-400">
-              View and manage projects
+              View and manage Our sectors
             </CardContent>
           </Card>
         </Link>

@@ -10,24 +10,29 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { ArrowLeft, Loader2, Star, StarOff, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { projectsService } from '@/app/service/projectsService';
 import { resizeImage } from '@/app/admin/projects/resizeImage';
+import { categoriesService } from '@/app/service/categoriesService';
+
+import { mutate } from 'swr';
+import { API_BASE_URL } from '@/app/config/apiUrl';
 
 
 const formSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
   }),
-
-  description: z.string(),
+  description: z.string().optional(),
   short_description: z.string(),
-
-  creation_date: z.string(),
-
-  category: z.string().min(2, {
+  creation_date: z.string().min(4, {
+    message: "Creation date is required.",
+  }),
+  category_id: z.string().min(2, {
     message: "Category is required.",
   }),
   country: z.string().min(2, {
@@ -46,6 +51,7 @@ export default function NewProjectPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
+  const { data: categories, isLoading: isCategoriesLoading } = categoriesService.useCategories();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,7 +61,7 @@ export default function NewProjectPage() {
       short_description: "",
       creation_date: "",
       country: "",
-      category: "",
+      category_id: "",
     },
   });
 
@@ -125,6 +131,7 @@ export default function NewProjectPage() {
     setIsLoading(true);
     try {
       const formData = new FormData();
+
       Object.entries(values).forEach(([key, value]) => {
         formData.append(key, value);
       });
@@ -137,8 +144,6 @@ export default function NewProjectPage() {
         formData.append('images', preview.file);
       });
 
-
-
       await projectsService.createProject(formData)
 
       toast({
@@ -146,7 +151,7 @@ export default function NewProjectPage() {
         description: "Project created successfully",
       });
 
-      router.push('/admin/projects');
+      router.back();
     } catch (error) {
       toast({
         title: "Error",
@@ -161,12 +166,10 @@ export default function NewProjectPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/admin/projects">
-          <Button variant="ghost">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Projects
-          </Button>
-        </Link>
+        <Button variant="ghost"  onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Projects
+        </Button>
         <h1 className="text-3xl font-bold">New Project</h1>
       </div>
 
@@ -192,19 +195,33 @@ export default function NewProjectPage() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Commercial, Residential" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="category_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories?.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
 
                 <FormField
                   control={form.control}
@@ -260,7 +277,7 @@ export default function NewProjectPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Description (optional)</FormLabel>
                     <FormControl>
                       <Textarea 
                         placeholder="Project description"

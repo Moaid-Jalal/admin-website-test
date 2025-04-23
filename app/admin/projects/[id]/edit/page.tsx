@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { projectsService } from '@/app/service/projectsService';
+import { categoriesService } from '@/app/service/categoriesService';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { resizeImage } from '../../resizeImage';
@@ -24,7 +26,7 @@ const formSchema = z.object({
   description: z.string(),
   short_description: z.string(),
   creation_date: z.string(),
-  category: z.string().min(2, {
+  category_id: z.string().min(2, {
     message: "Category is required.",
   }),
   country: z.string().min(2, {
@@ -44,14 +46,14 @@ interface Project {
   title: string;
   description: string;
   short_description: string;
-  category: string;
+  category: { id: string; name: string };
   country: string;
   creation_date: string;
   images: Array<{
     id: string;
     url: string;
     is_main: boolean;
-    display_order: number;
+    display_order?: number;
   }>;
 }
 
@@ -77,13 +79,15 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
   const [initialFormValues, setInitialFormValues] = useState<z.infer<typeof formSchema> | null>(null);
 
+  const { data: categories, isLoading: isCategoriesLoading } = categoriesService.useCategories();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
       short_description: "",
-      category: "",
+      category_id: "",
       country: "",
       creation_date: "",
     },
@@ -105,7 +109,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         title: res.title,
         description: res.description,
         short_description: res.short_description,
-        category: res.category,
+        category_id: res.category?.id || "",
         country: res.country,
         creation_date: res.creation_date,
       };
@@ -186,6 +190,10 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         tempMainImageId !== mainImageId;
 
       if (hasChanges) {
+        formData.forEach((value, key) => {
+          console.log(key, value);
+        }
+      )
         await projectsService.updateProject(projectId, formData);
         toast({
           title: "Success",
@@ -200,7 +208,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       }
       
       // Navigate back to project details
-      router.push(`/admin/projects`);
+      // router.back()
     } catch (error) {
       console.error('Error updating project:', error);
       toast({
@@ -297,9 +305,9 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={() => router.push('/admin/projects')}>
+        <Button variant="ghost" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Projects
+          Back
         </Button>
         <h1 className="text-3xl font-bold">Edit Project</h1>
       </div>
@@ -328,12 +336,27 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
 
                 <FormField
                   control={form.control}
-                  name="category"
+                  name="category_id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Commercial, Residential" {...field} />
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={isCategoriesLoading}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories?.map((cat) => (
+                              <SelectItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -499,7 +522,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.push('/projects')}
+                  onClick={() => router.back()}
                 >
                   Cancel
                 </Button>
