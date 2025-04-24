@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 import { loginService } from '@/app/service/login'
 import { useToast } from '@/hooks/use-toast'
 import Image from 'next/image'
-import  logo from '@/images/logo.png'
+import  logo from '@/images/logo.jpg'
 
 
 const Navbar = () => {
