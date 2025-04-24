@@ -58,11 +58,8 @@ export default function AboutUsPage() {
         setIsLoading(true);
         try {
         const res = await aboutUsService.getAboutUsInformation();
-        setOriginalData(res); // حفظ البيانات الأصلية للمقارنة لاحقًا
-        console.log
-        // Reset form with data from API
+        setOriginalData(res);
         form.reset({
-            
             contact_address: res.contact_info.find((item: any) => item.section_title === "Address")?.content || "",
             contact_phone: res.contact_info.find((item: any) => item.section_title === "Phone")?.content || "",
             contact_email: res.contact_info.find((item: any) => item.section_title === "Email")?.content || "",
