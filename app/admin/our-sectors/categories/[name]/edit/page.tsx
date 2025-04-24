@@ -11,11 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ArrowLeft, Loader2, X } from "lucide-react";
-import Link from "next/link";
 import { categoriesService } from "@/app/service/categoriesService";
 import { IconSearch } from "@/components/iconSearch";
 import { mutate } from "swr";
 import { API_BASE_URL } from "@/app/config/apiUrl";
+
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
