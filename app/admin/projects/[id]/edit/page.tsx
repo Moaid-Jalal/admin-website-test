@@ -23,15 +23,13 @@ const formSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
   }),
-  description: z.string(),
-  short_description: z.string(),
-  creation_date: z.string(),
+  description: z.string().optional(),
+  short_description: z.string().optional(),
+  creation_date: z.string().optional(),
   category_id: z.string().min(2, {
     message: "Category is required.",
   }),
-  country: z.string().min(2, {
-    message: "Country is required.",
-  }),
+  country: z.string().optional()
 });
 
 interface ProjectImage {

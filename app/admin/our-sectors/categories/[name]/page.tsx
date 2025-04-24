@@ -21,7 +21,6 @@ import { projectsService } from "@/app/service/projectsService";
 export default function CategoryProjectsPage({ params }: { params: { name: string } }) {
   const categoryName = params.name
   const router = useRouter();
-  const { toast } = useToast();
   const {
     projects,
     error,
@@ -79,7 +78,7 @@ export default function CategoryProjectsPage({ params }: { params: { name: strin
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  <TableHead>Country</TableHead>
+                  <TableHead>short-des</TableHead>
                   <TableHead>Created At</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -88,7 +87,7 @@ export default function CategoryProjectsPage({ params }: { params: { name: strin
                 {projects.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell>{project.title}</TableCell>
-                    <TableCell>{project.country}</TableCell>
+                    <TableCell>{project.short_description.split(0, 10)}</TableCell>
                     <TableCell>
                       {new Date(project.created_at).toLocaleDateString()}
                     </TableCell>
@@ -116,6 +115,25 @@ export default function CategoryProjectsPage({ params }: { params: { name: strin
           ) : (
             <div className="flex justify-center items-center h-32">
               <p className="text-muted-foreground">No projects found in this category</p>
+            </div>
+          )}
+
+          {hasMore && (
+            <div className="flex justify-center mt-4">
+              <Button
+                onClick={loadMore}
+                disabled={isValidating}
+                variant="outline"
+              >
+                {isValidating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Load More"
+                )}
+              </Button>
             </div>
           )}
         </CardContent>

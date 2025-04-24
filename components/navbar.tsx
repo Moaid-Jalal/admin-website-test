@@ -8,7 +8,8 @@ import { useState } from 'react'
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 import { loginService } from '@/app/service/login'
 import { useToast } from '@/hooks/use-toast'
-
+import Image from 'next/image'
+import  logo from '@/images/logo.png'
 
 
 const Navbar = () => {
@@ -146,12 +147,17 @@ const Navbar = () => {
 
   return (
     <nav className="border-b fixed w-full bg-background z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-1 sm:px-6 lg:px-8">
         <div className="flex justify-between h-14">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <Building2 className="h-6 w-6 text-primary" />
-              <span className="ml-2 text-lg font-bold">Your Company</span>
+              <Image
+                src={logo}
+                width={200}
+                height={200}
+                className='bg-inherit'
+                alt='website logo'
+              />
             </Link>
           </div>
           

@@ -28,16 +28,12 @@ const formSchema = z.object({
     message: "Title must be at least 2 characters.",
   }),
   description: z.string().optional(),
-  short_description: z.string(),
-  creation_date: z.string().min(4, {
-    message: "Creation date is required.",
-  }),
+  short_description: z.string().optional(),
+  creation_date: z.string().optional(),
   category_id: z.string().min(2, {
     message: "Category is required.",
   }),
-  country: z.string().min(2, {
-    message: "country is required.",
-  }),
+  country: z.string().optional(),
 });
 
 interface ImagePreview {
@@ -136,7 +132,6 @@ export default function NewProjectPage() {
         formData.append(key, value);
       });
 
-      // Find the index of the main image
       const mainImageIndex = imagePreviews.findIndex(preview => preview.isMain);
       formData.append('mainImageIndex', mainImageIndex.toString());
 
@@ -151,7 +146,7 @@ export default function NewProjectPage() {
         description: "Project created successfully",
       });
 
-      router.back();
+      // router.back();
     } catch (error) {
       toast({
         title: "Error",
@@ -228,7 +223,7 @@ export default function NewProjectPage() {
                   name="country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>country</FormLabel>
+                      <FormLabel>country  (optional)</FormLabel>
                       <FormControl>
                         <Input placeholder="Project country" {...field} />
                       </FormControl>
@@ -242,7 +237,7 @@ export default function NewProjectPage() {
                   name="creation_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Creation date</FormLabel>
+                      <FormLabel>Creation date  (optional)</FormLabel>
                       <FormControl>
                         <Input placeholder="2024, 2025" {...field} />
                       </FormControl>
@@ -277,7 +272,7 @@ export default function NewProjectPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description (optional)</FormLabel>
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea 
                         placeholder="Project description"
