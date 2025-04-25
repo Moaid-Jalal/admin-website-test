@@ -41,7 +41,7 @@ export default function CategoriesPage() {
 
       toast({
         title: "Success",
-        description: "Project deleted successfully",
+        description: "category deleted successfully",
         variant: "default",
       });
 
@@ -53,14 +53,14 @@ export default function CategoriesPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete project",
+        description: "Failed to delete category",
         variant: "destructive",
       });
     } finally {
       setLoadingDelete(false);
     }
   };
-  
+
 
   if (error) {
     return (

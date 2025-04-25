@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { projectsService } from "@/app/service/projectsService";
+import { mutate } from "swr";
+import { API_BASE_URL } from "@/app/config/apiUrl";
 
 
 export default function CategoryProjectsPage({ params }: { params: { name: string } }) {
@@ -30,6 +32,41 @@ export default function CategoryProjectsPage({ params }: { params: { name: strin
     hasMore,
     refetch
   } = projectsService.useCategoryProjects(params.name);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const { toast } = useToast();
+
+
+    const handleDelete = async (id: string) => {
+      if (!confirm('Are you sure you want to delete this category?')) return;
+      if(loadingDelete) return;
+
+      setLoadingDelete(true);
+  
+      try {
+        await projectsService.deleteProject(id);
+
+        toast({
+          title: "Success",
+          description: "Project deleted successfully",
+          variant: "default",
+        });
+  
+        mutate(
+          `${API_BASE_URL}/categories/${categoryName}/projects`,
+          projects?.filter((cat) => cat.id !== id),
+          false
+        );
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete project",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingDelete(false);
+      }
+    };
+  
 
   if (isLoading) {
     return (
@@ -100,10 +137,11 @@ export default function CategoryProjectsPage({ params }: { params: { name: strin
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
+                        disabled={loadingDelete}
                         variant="ghost"
                         size="icon"
                         className="text-red-500 hover:text-red-600"
-                        onClick={() => router.push(`/admin/projects/${project.id}`)}
+                        onClick={() => handleDelete(project.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
