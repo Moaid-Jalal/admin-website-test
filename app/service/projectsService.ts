@@ -1,5 +1,5 @@
-import useSWRInfinite  from 'swr/infinite';
-import { API_BASE_URL } from "@/app/config/apiUrl"; 
+import useSWRInfinite from 'swr/infinite';
+import { API_BASE_URL } from "@/app/config/apiUrl";
 import { useSWRConfig } from 'swr';
 
 export class ApiError extends Error {
@@ -23,7 +23,7 @@ export const projectsService = {
             return res.json();
         };
 
-        const { mutate } = useSWRConfig(); // ✅ استخدم نسخة mutate العامة
+        const { mutate } = useSWRConfig();
 
         const getKey = (pageIndex: number, previousPageData: any) => {
             if (previousPageData && previousPageData.length < 10) return null;
@@ -31,40 +31,40 @@ export const projectsService = {
             return `${API_BASE_URL}/categories/${categoryName}/projects?offset=${offset}`;
         };
 
-        const updateProjectLocally = (updatedProject: any) => {
-            const newData = data?.map((page) =>
-                page.map((project: any) =>
-                    project.id === updatedProject.id ? updatedProject : project
-                )
-            );
-
-            mutate(
-                (index) => getKey(index, index === 0 ? null : newData?.[index - 1]),
-                newData,
-                false
-            );
-        }
-
         const {
             data,
             error,
             size,
             setSize,
             isValidating,
-        } = useSWRInfinite(getKey, fetcher, {
+        } = useSWRInfinite<any[]>(getKey, fetcher, {
             revalidateOnFocus: false,
             revalidateOnReconnect: true,
             dedupingInterval: 1000 * 60 * 10,
         });
 
+        const updateProjectLocally = (updatedProject: any) => {
+            if (!data) return;
+            const newData = data.map((page) =>
+                page.map((project: any) =>
+                    project.id === updatedProject.id ? updatedProject : project
+                )
+            );
+            const keys = newData.map((_, index) => getKey(index, index === 0 ? null : newData[index - 1]));
+            keys.forEach((key, idx) => {
+                if (key) mutate(key, newData[idx], false);
+            });
+        };
+
         const refetch = async () => {
-            if (!error) return; 
+            if (!error) return;
+            if (!data) return;
             for (let i = 0; i < size; i++) {
-                const key = getKey(i, i === 0 ? null : data?.[i - 1]);
+                const key = getKey(i, i === 0 ? null : data[i - 1]);
                 if (key) await mutate(key, undefined);
             }
         };
-    
+
         return {
             projects: data ? data.flat() : [],
             getKey,
@@ -78,8 +78,6 @@ export const projectsService = {
             updateProjectLocally
         };
     },
-
-
 
     async getProject(id: string): Promise<any> {
         const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
@@ -95,7 +93,7 @@ export const projectsService = {
         return response.json();
     },
 
-    async updateProject(projectId: string, data: FormData) :  Promise<any> {
+    async updateProject(projectId: string, data: FormData): Promise<any> {
         const response = await fetch(`${API_BASE_URL}/projects/update/${projectId}`, {
             method: "PUT",
             credentials: "include",
@@ -150,8 +148,8 @@ export const projectsService = {
             throw new ApiError(errorData);
         }
 
-        console.log(response.json())
+        console.log(response.json());
 
         return response.json();
     }
-}; 
+};
