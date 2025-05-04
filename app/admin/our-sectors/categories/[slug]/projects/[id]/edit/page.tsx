@@ -48,7 +48,7 @@ export default function EditProjectPage({ params }: { params: { id: string, slug
     const { toast } = useToast();
     const { data: categories, isLoading: isCategoriesLoading, } = categoriesService.useCategories();
     const { languages, isLoading: isLanguagesLoading } = languagesService.useLanguages();
-    const { updateProjectLocally } = projectsService.useCategoryProjects(params.slug)
+    const { refetch } = projectsService.useCategoryProjects(params.slug)
 
     const [activeTab, setActiveTab] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
@@ -268,10 +268,7 @@ export default function EditProjectPage({ params }: { params: { id: string, slug
             if (hasChanges) {
                 const updatedProject = await projectsService.updateProject(params.id, formData);
 
-                updateProjectLocally({
-                    ...values,
-                    id: params.id
-                })
+                await refetch()
 
                 toast({
                     title: "Success",

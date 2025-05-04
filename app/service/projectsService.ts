@@ -43,21 +43,8 @@ export const projectsService = {
             dedupingInterval: 1000 * 60 * 10,
         });
 
-        const updateProjectLocally = (updatedProject: any) => {
-            if (!data) return;
-            const newData = data.map((page) =>
-                page.map((project: any) =>
-                    project.id === updatedProject.id ? updatedProject : project
-                )
-            );
-            const keys = newData.map((_, index) => getKey(index, index === 0 ? null : newData[index - 1]));
-            keys.forEach((key, idx) => {
-                if (key) mutate(key, newData[idx], false);
-            });
-        };
-
         const refetch = async () => {
-            if (!error) return;
+            // if (!error) return;
             if (!data) return;
             for (let i = 0; i < size; i++) {
                 const key = getKey(i, i === 0 ? null : data[i - 1]);
@@ -75,7 +62,6 @@ export const projectsService = {
             loadMore: () => setSize(size + 1),
             hasMore: data ? data[data.length - 1]?.length === 10 : false,
             refetch,
-            updateProjectLocally
         };
     },
 
