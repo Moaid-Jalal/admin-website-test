@@ -44,10 +44,9 @@ export const projectsService = {
         });
 
         const refetch = async () => {
-            // if (!error) return;
-            if (!data) return;
+            if (!error) return;
             for (let i = 0; i < size; i++) {
-                const key = getKey(i, i === 0 ? null : data[i - 1]);
+                const key = getKey(i, i === 0 ? null : data?.[i - 1]);
                 if (key) await mutate(key, undefined);
             }
         };

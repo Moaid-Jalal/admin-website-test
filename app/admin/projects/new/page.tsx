@@ -50,6 +50,8 @@ export default function NewProjectPage() {
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
   const { data: categories, isLoading: isCategoriesLoading } = categoriesService.useCategories();
   const { languages, isLoading: isLanguagesLoading } = languagesService.useLanguages();
+  const categorySlugFromQuery = searchParams?.get("category");
+  const { refetch } = projectsService.useCategoryProjects(categories?.find(cat => cat.slug === categorySlugFromQuery)?.id || "");
   const [activeTab, setActiveTab] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -63,7 +65,13 @@ export default function NewProjectPage() {
   });
 
   useEffect(() => {
-    if (languages && languages.length > 0 && categories && categories.length > 0) {
+    if (
+      languages &&
+      languages.length > 0 &&
+      categories &&
+      categories.length > 0 &&
+      form.getValues("category_id") === "" // فقط إذا لم يتم تعبئة النموذج بعد
+    ) {
       const defaultTranslations = languages.reduce((acc, lang) => ({
         ...acc,
         [lang.code]: {
@@ -72,7 +80,6 @@ export default function NewProjectPage() {
           extra_description: "",
         }
       }), {});
-      const categorySlugFromQuery = searchParams?.get("category");
       let initialCategoryId = "";
       if (categorySlugFromQuery && categories.some(cat => cat.slug === categorySlugFromQuery)) {
         initialCategoryId = categories.find(cat => cat.slug === categorySlugFromQuery)?.id || "";
@@ -85,7 +92,8 @@ export default function NewProjectPage() {
       });
       setActiveTab(languages[0].code);
     }
-  }, [languages, categories, form, searchParams]);
+    // eslint-disable-next-line
+  }, [languages, categories, searchParams]); // احذف form من dependencies
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -162,6 +170,8 @@ export default function NewProjectPage() {
       })
 
       await projectsService.createProject(formData);
+
+      await refetch();
 
       toast({
         title: "Success",
