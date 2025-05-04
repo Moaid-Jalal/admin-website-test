@@ -15,7 +15,7 @@ export class ApiError extends Error {
 
 export const aboutUsService = {
     async getAboutUsInformation(): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/aboutus/admin`, {
+        const response = await fetch(`${API_BASE_URL}/aboutus`, {
             method: "GET",
             credentials: "include"
         });

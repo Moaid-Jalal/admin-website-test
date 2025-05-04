@@ -16,10 +16,10 @@ import {
 } from "@/components/ui/table";
 import { categoriesService } from '@/app/service/categoriesService';
 import { useToast } from '@/hooks/use-toast';
-
 import { mutate } from 'swr';
 import { API_BASE_URL } from '@/app/config/apiUrl';
-import { Category } from "@/app/types/categories"
+import { Category } from "@/app/types/categories";
+import Image  from "next/image"
 
 export default function CategoriesPage() {
   const router = useRouter();
@@ -27,8 +27,6 @@ export default function CategoriesPage() {
   const [loadingDelete, setLoadingDelete] = useState(false);
 
   const { toast } = useToast();
-
-
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this category?')) return;
@@ -61,7 +59,6 @@ export default function CategoriesPage() {
     }
   };
 
-
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh]">
@@ -75,22 +72,24 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-3xl font-bold">Categories</h1>
+      <div className="flex justify-between items-center">
+        <div className="sm:flex items-center gap-4">
+          <Link href={`/admin`}>
+            <Button variant="ghost">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <h1 className="text-3xl font-bold">categories</h1>
         </div>
-      </div>
-
         <Link href="/admin/our-sectors/categories/new">
           <Button className=''>
             <Plus className="mr-2 h-4 w-4" />
             Add New Category
           </Button>
         </Link>
+      </div>
+
 
       <Card>
         <CardHeader>
@@ -106,6 +105,9 @@ export default function CategoriesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Icon</TableHead>
+                  <TableHead>Slug</TableHead>
                   <TableHead>see projects</TableHead>
                   <TableHead>project count</TableHead>
                   <TableHead>Created At</TableHead>
@@ -116,13 +118,27 @@ export default function CategoriesPage() {
                 {categories?.map((cat: Category) => (
                   <TableRow key={cat.id}>
                     <TableCell>{cat.name}</TableCell>
+                    <TableCell>{cat.description.slice(0, 10)}{cat.description.length > 10 && '...'}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="link"
-                        onClick={() => router.push(`/admin/our-sectors/categories/${cat.name}`)}
-                      >
-                        + View
-                      </Button>
+                      {cat.icon_svg_url && (
+                        <Image
+                          src={`${cat.icon_svg_url}?color=white`}
+                          alt={cat.name}
+                          width={32}
+                          height={32}
+                          style={{ display: "inline-block", verticalAlign: "middle" }}
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell>{cat.slug}</TableCell>
+                    <TableCell>
+                      <Link href={`/admin/our-sectors/categories/${cat.slug}/projects`}>
+                        <Button
+                          variant="link"
+                        >
+                          + View
+                        </Button>
+                      </Link>
                     </TableCell>
                     <TableCell>{cat.project_count}</TableCell>
                     <TableCell>
@@ -130,12 +146,11 @@ export default function CategoriesPage() {
                         ? new Date(cat.created_at).toLocaleDateString()
                         : "-"}
                     </TableCell>
-
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => router.push(`/admin/our-sectors/categories/${cat.name}/edit`)}
+                        onClick={() => router.push(`/admin/our-sectors/categories/${cat.slug}/edit`)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>

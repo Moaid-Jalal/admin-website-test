@@ -19,9 +19,7 @@ import { projectsService } from "@/app/service/projectsService";
 import { mutate } from "swr";
 import { API_BASE_URL } from "@/app/config/apiUrl";
 
-
-export default function CategoryProjectsPage({ params }: { params: { name: string } }) {
-  const categoryName = params.name
+export default function CategoryProjectsPage({ params }: { params: { slug: string } }) {
   const router = useRouter();
   const {
     projects,
@@ -31,42 +29,46 @@ export default function CategoryProjectsPage({ params }: { params: { name: strin
     loadMore,
     hasMore,
     refetch
-  } = projectsService.useCategoryProjects(params.name);
+  } = projectsService.useCategoryProjects(params.slug);
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const categoryName = params.slug.split("-").join(" ");
+
   const { toast } = useToast();
 
+  useEffect(() => {
+    console.log(projects)
+  }, [projects])
 
-    const handleDelete = async (id: string) => {
-      if (!confirm('Are you sure you want to delete this category?')) return;
-      if(loadingDelete) return;
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this category?')) return;
+    if(loadingDelete) return;
 
-      setLoadingDelete(true);
-  
-      try {
-        await projectsService.deleteProject(id);
+    setLoadingDelete(true);
 
-        toast({
-          title: "Success",
-          description: "Project deleted successfully",
-          variant: "default",
-        });
-  
-        mutate(
-          `${API_BASE_URL}/categories/${categoryName}/projects`,
-          projects?.filter((cat) => cat.id !== id),
-          false
-        );
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to delete project",
-          variant: "destructive",
-        });
-      } finally {
-        setLoadingDelete(false);
-      }
-    };
-  
+    try {
+      await projectsService.deleteProject(id);
+
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+        variant: "default",
+      });
+
+      mutate(
+        `${API_BASE_URL}/categories/${categoryName}/projects`,
+        projects?.filter((cat) => cat.id !== id),
+        false
+      );
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -91,13 +93,15 @@ export default function CategoryProjectsPage({ params }: { params: { name: strin
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="sm:flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
+          <Link href={`/admin/our-sectors/categories`}>
+            <Button variant="ghost">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </Link>
           <h1 className="text-3xl font-bold">{categoryName}</h1>
         </div>
-        <Link href="/admin/projects/new">
+        <Link href={`/admin/projects/new?category=${params.slug}`}>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Add New Project
@@ -115,7 +119,10 @@ export default function CategoryProjectsPage({ params }: { params: { name: strin
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  <TableHead>short-des</TableHead>
+                  <TableHead>Short Description</TableHead>
+                  <TableHead>Extra Description</TableHead>
+                  <TableHead>Country</TableHead>
+                  <TableHead>Creation Year</TableHead>
                   <TableHead>Created At</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -125,17 +132,23 @@ export default function CategoryProjectsPage({ params }: { params: { name: strin
                   <TableRow key={project.id}>
                     <TableCell>{project.title}</TableCell>
                     <TableCell>{project.short_description.split(0, 10)}</TableCell>
+                    <TableCell>{project.extra_description.split(0, 10)}</TableCell>
+                    <TableCell>{project.country}</TableCell>
+                    <TableCell>{project.creation_date}</TableCell>
                     <TableCell>
-                      {new Date(project.created_at).toLocaleDateString()}
+                      {project.created_at
+                        ? new Date(project.created_at).toLocaleDateString()
+                        : "-"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => router.push(`/admin/projects/${project.id}/edit`)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <Link href={`/admin/our-sectors/categories/${params.slug}/projects/${project.id}/edit`}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </Link>
                       <Button
                         disabled={loadingDelete}
                         variant="ghost"

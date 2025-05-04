@@ -42,6 +42,9 @@ export const categoriesService = {
             }
         );
 
+
+        console.log(data)
+
         return {
             data,
             error,
@@ -51,7 +54,7 @@ export const categoriesService = {
     },
 
     async createCategory(categoryData: any): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/categories/new`, {
+        const response = await fetch(`${API_BASE_URL}/categories`, {
             method: "POST",
             credentials: "include",
             headers: {
@@ -100,8 +103,8 @@ export const categoriesService = {
         return response.json();
     },
 
-    async getCategory(id: string): Promise<Category> {
-        const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
+    async getCategory(slug: string): Promise<Category> {
+        const response = await fetch(`${API_BASE_URL}/categories/${slug}`, {
             method: "GET",
             credentials: "include"
         });

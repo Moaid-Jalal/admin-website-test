@@ -30,7 +30,21 @@ export const projectsService = {
             const offset = pageIndex * 10;
             return `${API_BASE_URL}/categories/${categoryName}/projects?offset=${offset}`;
         };
-    
+
+        const updateProjectLocally = (updatedProject: any) => {
+            const newData = data?.map((page) =>
+                page.map((project: any) =>
+                    project.id === updatedProject.id ? updatedProject : project
+                )
+            );
+
+            mutate(
+                (index) => getKey(index, index === 0 ? null : newData?.[index - 1]),
+                newData,
+                false
+            );
+        }
+
         const {
             data,
             error,
@@ -53,12 +67,15 @@ export const projectsService = {
     
         return {
             projects: data ? data.flat() : [],
+            getKey,
+            size,
             error,
             isLoading: !data && !error,
             isValidating,
             loadMore: () => setSize(size + 1),
             hasMore: data ? data[data.length - 1]?.length === 10 : false,
             refetch,
+            updateProjectLocally
         };
     },
 

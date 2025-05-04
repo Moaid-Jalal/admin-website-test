@@ -4,8 +4,10 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { messagesService } from "@/app/service/messagesService";
 import { format } from "date-fns";
-import { Loader2, Trash } from "lucide-react";
+import { Loader2, Trash, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface Message {
   id: string;
@@ -75,6 +77,16 @@ export default function AdminContactPage() {
 
   return (
     <div className="container mx-auto py-24 px-4">
+      {/* زر الرجوع */}
+      <div className="mb-6">
+        <Link href="/admin">
+          <Button variant="ghost">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </Link>
+      </div>
+
       {loadingDelete && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
           <Loader2 className="h-8 w-8 animate-spin" />

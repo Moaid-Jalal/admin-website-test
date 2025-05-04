@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,29 +10,29 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-import { ArrowLeft, Loader2, Star, StarOff, Upload, X } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Loader2, Star, StarOff, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
+import Image from 'next/image';
 import { projectsService } from '@/app/service/projectsService';
 import { resizeImage } from '@/app/admin/projects/resizeImage';
 import { categoriesService } from '@/app/service/categoriesService';
+import { languagesService } from '@/app/service/languagesService';
+import Link from 'next/link';
 
-import { mutate } from 'swr';
-import { API_BASE_URL } from '@/app/config/apiUrl';
-
+const translationSchema = z.object({
+  title: z.string().min(2, { message: "Title is required." }),
+  short_description: z.string().min(2, { message: "Short description is required." }),
+  extra_description: z.string().optional(),
+});
 
 const formSchema = z.object({
-  title: z.string().min(2, {
-    message: "Title must be at least 2 characters.",
-  }),
-  description: z.string().optional(),
-  short_description: z.string().optional(),
+  category_id: z.string().min(2, { message: "Category is required." }),
+  translations: z.record(translationSchema).refine(
+    translations => Object.keys(translations).length > 0,
+    { message: "Translations for all languages are required" }
+  ),
   creation_date: z.string().optional(),
-  category_id: z.string().min(2, {
-    message: "Category is required.",
-  }),
   country: z.string().optional(),
 });
 
@@ -44,36 +44,59 @@ interface ImagePreview {
 
 export default function NewProjectPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
   const { data: categories, isLoading: isCategoriesLoading } = categoriesService.useCategories();
+  const { languages, isLoading: isLanguagesLoading } = languagesService.useLanguages();
+  const [activeTab, setActiveTab] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      short_description: "",
+      category_id: "",
+      translations: {},
       creation_date: "",
       country: "",
-      category_id: "",
     },
   });
 
+  useEffect(() => {
+    if (languages && languages.length > 0 && categories && categories.length > 0) {
+      const defaultTranslations = languages.reduce((acc, lang) => ({
+        ...acc,
+        [lang.code]: {
+          title: "",
+          short_description: "",
+          extra_description: "",
+        }
+      }), {});
+      const categorySlugFromQuery = searchParams?.get("category");
+      let initialCategoryId = "";
+      if (categorySlugFromQuery && categories.some(cat => cat.slug === categorySlugFromQuery)) {
+        initialCategoryId = categories.find(cat => cat.slug === categorySlugFromQuery)?.id || "";
+      }
+      form.reset({
+        category_id: initialCategoryId,
+        translations: defaultTranslations,
+        creation_date: "",
+        country: "",
+      });
+      setActiveTab(languages[0].code);
+    }
+  }, [languages, categories, form, searchParams]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-  
+
     const newPreviews: ImagePreview[] = [];
-  
+
     for (const file of Array.from(files)) {
       try {
-        // ضغط الصورة باستخدام resizeImage
-        const resizedFile = await resizeImage(file, 800, 800); // تحديد الأبعاد والحد الأقصى
-  
-        // إضافة المعاينة للصورة المضغوطة
+        const resizedFile = await resizeImage(file, 800, 800);
+
         newPreviews.push({
           file: resizedFile,
           preview: URL.createObjectURL(resizedFile),
@@ -83,16 +106,14 @@ export default function NewProjectPage() {
         console.error("Error resizing image:", error);
       }
     }
-  
-    // إذا كانت الصورة الأولى يتم إضافتها، اجعلها الصورة الرئيسية
+
     if (imagePreviews.length === 0 && newPreviews.length > 0) {
       newPreviews[0].isMain = true;
     }
-  
-    // تحديث المعاينات
+
     setImagePreviews([...imagePreviews, ...newPreviews]);
   };
-  
+
   const toggleMainImage = (index: number) => {
     setImagePreviews(previews => 
       previews.map((preview, i) => ({
@@ -105,14 +126,12 @@ export default function NewProjectPage() {
   const removeImage = (index: number) => {
     setImagePreviews(previews => {
       const newPreviews = previews.filter((_, i) => i !== index);
-      // If we removed the main image and there are other images, make the first one main
       if (previews[index].isMain && newPreviews.length > 0) {
         newPreviews[0].isMain = true;
       }
       return newPreviews;
     });
   };
-
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (imagePreviews.length === 0) {
@@ -127,26 +146,29 @@ export default function NewProjectPage() {
     setIsLoading(true);
     try {
       const formData = new FormData();
-
-      Object.entries(values).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
+      formData.append("category_id", values.category_id);
+      formData.append("translations", JSON.stringify(values.translations));
+      if (values.creation_date) formData.append("creation_date", values.creation_date);
+      if (values.country) formData.append("country", values.country);
 
       const mainImageIndex = imagePreviews.findIndex(preview => preview.isMain);
       formData.append('mainImageIndex', mainImageIndex.toString());
-
       imagePreviews.forEach(preview => {
         formData.append('images', preview.file);
       });
 
-      await projectsService.createProject(formData)
+      formData.forEach((value, key) => {
+        console.log(key, value);
+      })
+
+      await projectsService.createProject(formData);
 
       toast({
         title: "Success",
         description: "Project created successfully",
       });
 
-      // router.back();
+      router.push(`/admin/our-sectors/categories/${categories?.find(cat => cat.id === values.category_id)?.slug}/projects`);
     } catch (error) {
       toast({
         title: "Error",
@@ -158,13 +180,23 @@ export default function NewProjectPage() {
     }
   }
 
+  if (isLanguagesLoading || isCategoriesLoading) {
+    return (
+      <div className="flex justify-center items-center h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost"  onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Projects
-        </Button>
+        <Link href={`/admin/our-sectors/categories/${categories?.find(cat => cat.id === form.getValues("category_id"))?.slug}/projects`}>
+          <Button variant="ghost" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </Link>
         <h1 className="text-3xl font-bold">New Project</h1>
       </div>
 
@@ -175,21 +207,6 @@ export default function NewProjectPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Project title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
               <FormField
                 control={form.control}
                 name="category_id"
@@ -198,18 +215,29 @@ export default function NewProjectPage() {
                     <FormLabel>Category</FormLabel>
                     <FormControl>
                       <div className="relative">
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
+                        <select
+                          className="w-full border rounded px-3 py-2 bg-background"
+                          value={field.value}
+                          onChange={e => field.onChange(e.target.value)}
+                        >
+                          <option value="">Select category</option>
                           {categories?.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id}>
+                            <option key={cat.id} value={cat.id}>
+                              {cat.icon_svg_url && (
+                                <span>
+                                  <Image
+                                    src={cat.icon_svg_url}
+                                    alt={cat.name}
+                                    width={18}
+                                    height={18}
+                                    className="inline-block mr-2"
+                                  />
+                                </span>
+                              )}
                               {cat.name}
-                            </SelectItem>
+                            </option>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </select>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -217,76 +245,120 @@ export default function NewProjectPage() {
                 )}
               />
 
-
-                <FormField
-                  control={form.control}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>country  (optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Project country" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                  </FormItem>
-                  )}
-                />
-
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="creation_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Creation date  (optional)</FormLabel>
+                      <FormLabel>Creation Year (optional)</FormLabel>
                       <FormControl>
-                        <Input placeholder="2024, 2025" {...field} />
+                        <Input
+                          placeholder="e.g. 2024"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country (optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Country"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
-              <FormField
-                control={form.control}
-                name="short_description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Short description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Short description"
-                        className="min-h-[50px]"
-                        {...field}
+              {languages && languages.length > 0 && (
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="w-full grid grid-cols-3">
+                    {languages.map((lang) => (
+                      <TabsTrigger key={lang.code} value={lang.code}>
+                        <span className="flex items-center gap-2">
+                            <Image
+                              src={`https://api.iconify.design/circle-flags:lang-${lang.code}.svg`}
+                              alt={lang.name}
+                              width={18}
+                              height={18}
+                              className="rounded-full"
+                            />
+                          {lang.name}
+                        </span>
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {languages.map((lang) => (
+                    <TabsContent key={lang.code} value={lang.code} className="space-y-4 pt-4">
+                      <FormField
+                        control={form.control}
+                        name={`translations.${lang.code}.title`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder={`Enter ${lang.name} title`}
+                                {...field}
+                                disabled={isLoading}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Project description"
-                        className="min-h-[120px]"
-                        {...field}
+                      <FormField
+                        control={form.control}
+                        name={`translations.${lang.code}.short_description`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Short Description</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder={`Enter ${lang.name} short description`}
+                                {...field}
+                                disabled={isLoading}
+                                rows={3}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormField
+                        control={form.control}
+                        name={`translations.${lang.code}.extra_description`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Extra Description</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder={`Enter ${lang.name} extra description`}
+                                {...field}
+                                disabled={isLoading}
+                                rows={3}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              )}
 
-
-            <div>
+              <div>
                 <FormLabel>Project Images</FormLabel>
                 <div className="mt-2">
                   <Input
@@ -340,7 +412,6 @@ export default function NewProjectPage() {
                   </div>
                 )}
               </div>
-
 
               <div className="flex justify-end gap-4">
                 <Button
