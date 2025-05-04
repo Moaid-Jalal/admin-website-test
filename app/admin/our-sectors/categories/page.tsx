@@ -143,8 +143,11 @@ export default function CategoriesPage() {
                     <TableCell>{cat.project_count}</TableCell>
                     <TableCell>
                       {cat.created_at
-                        ? new Date(cat.created_at).toLocaleDateString()
-                        : "-"}
+                        ? (() => {
+                            const date = new Date(cat.created_at);
+                            return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+                          })()
+                      : "-"}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

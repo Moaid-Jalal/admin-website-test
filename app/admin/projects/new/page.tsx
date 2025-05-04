@@ -192,7 +192,7 @@ export default function NewProjectPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link href={`/admin/our-sectors/categories/${categories?.find(cat => cat.id === form.getValues("category_id"))?.slug}/projects`}>
-          <Button variant="ghost" onClick={() => router.back()}>
+          <Button variant="ghost">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
@@ -414,13 +414,14 @@ export default function NewProjectPage() {
               </div>
 
               <div className="flex justify-end gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push('/admin/projects')}
-                >
-                  Cancel
-                </Button>
+                <Link href={`/admin/our-sectors/categories/${categories?.find(cat => cat.id === form.getValues("category_id"))?.slug}/projects`}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                </Link>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Project

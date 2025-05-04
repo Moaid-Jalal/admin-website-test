@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { languagesService } from '@/app/service/languagesService';
 import { categoriesService } from '@/app/service/categoriesService';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const translationSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -127,10 +128,12 @@ export default function NewCategoryPage() {
   return (
     <div className="space-y-6 container mx-auto px-4 py-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={() => router.back()} className="shrink-0">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
+        <Link href={`/admin/our-sectors/categories`}>
+          <Button variant="ghost" className="shrink-0">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </Link>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">New Category</h1>
       </div>
 

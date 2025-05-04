@@ -137,8 +137,11 @@ export default function CategoryProjectsPage({ params }: { params: { slug: strin
                     <TableCell>{project.creation_date}</TableCell>
                     <TableCell>
                       {project.created_at
-                        ? new Date(project.created_at).toLocaleDateString()
-                        : "-"}
+                          ? (() => {
+                              const date = new Date(project.created_at);
+                              return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+                            })()
+                      : "-"}
                     </TableCell>
                     <TableCell className="text-right">
                       <Link href={`/admin/our-sectors/categories/${params.slug}/projects/${project.id}/edit`}>
