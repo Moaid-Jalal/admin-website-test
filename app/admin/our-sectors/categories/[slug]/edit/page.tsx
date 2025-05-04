@@ -41,6 +41,7 @@ export default function EditCategoryPage({ params }: { params: { slug: string } 
   const { toast } = useToast();
 
   const { languages, isLoading: isLanguagesLoading } = languagesService.useLanguages();
+
   const [category_id, setCategoryId] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -54,7 +55,7 @@ export default function EditCategoryPage({ params }: { params: { slug: string } 
   useEffect(() => {
     fetchCategory();
     // eslint-disable-next-line
-  }, [params.slug, languages]);
+  }, [params.slug]);
 
   const fetchCategory = async () => {
     setIsLoading(true);
