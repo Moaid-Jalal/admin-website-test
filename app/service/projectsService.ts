@@ -80,7 +80,7 @@ export const projectsService = {
     },
 
     async getProject(id: string): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/projects/admin/${id}`, {
             method: "GET",
             credentials: "include"
         });
