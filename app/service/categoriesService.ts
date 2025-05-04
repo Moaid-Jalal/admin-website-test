@@ -103,7 +103,7 @@ export const categoriesService = {
         return response.json();
     },
 
-    async getCategory(slug: string): Promise<Category> {
+    async getCategory(slug: string): Promise<any> {
         const response = await fetch(`${API_BASE_URL}/categories/${slug}`, {
             method: "GET",
             credentials: "include"

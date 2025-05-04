@@ -41,7 +41,7 @@ export default function EditCategoryPage({ params }: { params: { slug: string } 
   const { toast } = useToast();
 
   const { languages, isLoading: isLanguagesLoading } = languagesService.useLanguages();
-  const [category_id, setCategoryId] = useState<string | null>(null);
+  const [category_id, setCategoryId] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -96,12 +96,12 @@ export default function EditCategoryPage({ params }: { params: { slug: string } 
   };
 
   // Helper to get only changed fields
-  const getChangedFields = (values: z.infer<typeof formSchema>) => {
+  const getChangedFields = (values: any) => {
     if (!initialFormValues) return values;
-    const changedFields: Partial<z.infer<typeof formSchema>> = {};
+    const changedFields: any = {};
 
     // icon_svg_url
-    if (values.icon_svg_url !== initialFormValues.icon_svg_url) {
+    if (values.icon_svg_url !== (initialFormValues as any).icon_svg_url) {
       changedFields.icon_svg_url = values.icon_svg_url;
     }
 
@@ -110,8 +110,8 @@ export default function EditCategoryPage({ params }: { params: { slug: string } 
     for (const lang in values.translations) {
       const changedLangFields: any = {};
       const currentLang = values.translations[lang] || {};
-      const initialLang = initialFormValues.translations?.[lang] || {};
-      (Object.keys(currentLang) as Array<keyof typeof currentLang>).forEach((fieldKey) => {
+      const initialLang = (initialFormValues as any).translations?.[lang] || {};
+      Object.keys(currentLang).forEach((fieldKey: string) => {
         if (currentLang[fieldKey] !== initialLang[fieldKey]) {
           changedLangFields[fieldKey] = currentLang[fieldKey];
         }
@@ -152,7 +152,7 @@ export default function EditCategoryPage({ params }: { params: { slug: string } 
       })
 
 
-      const newValues = {
+      const newValues: any = {
         // slug: changedFields.translations["en"].name || initialFormValues?.translations["en"].name,
         icon_svg_url: changedFields.icon_svg_url || initialFormValues?.icon_svg_url,
         name: changedFields.translations["en"].name || initialFormValues?.translations["en"].name,
