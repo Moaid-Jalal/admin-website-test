@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { projectsService } from "@/app/service/projectsService";
 import { mutate } from "swr";
 import { API_BASE_URL } from "@/app/config/apiUrl";
+import { Project } from "@/app/types/projects";
 
 export default function CategoryProjectsPage({ params }: { params: { slug: string } }) {
   const router = useRouter();
@@ -35,10 +36,6 @@ export default function CategoryProjectsPage({ params }: { params: { slug: strin
 
   const { toast } = useToast();
 
-  useEffect(() => {
-    console.log(projects)
-  }, [projects])
-
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this category?')) return;
     if(loadingDelete) return;
@@ -48,17 +45,14 @@ export default function CategoryProjectsPage({ params }: { params: { slug: strin
     try {
       await projectsService.deleteProject(id);
 
+      await refetch()
+
       toast({
         title: "Success",
         description: "Project deleted successfully",
         variant: "default",
       });
 
-      mutate(
-        `${API_BASE_URL}/categories/${categoryName}/projects`,
-        projects?.filter((cat) => cat.id !== id),
-        false
-      );
     } catch (error) {
       toast({
         title: "Error",
@@ -128,11 +122,15 @@ export default function CategoryProjectsPage({ params }: { params: { slug: strin
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projects.map((project) => (
+                {projects.length > 0  && projects.map((project) => (
                   <TableRow key={project.id}>
-                    <TableCell>{project.title}</TableCell>
-                    <TableCell>{project.short_description.split(0, 10)}</TableCell>
-                    <TableCell>{project.extra_description.split(0, 10)}</TableCell>
+                    <TableCell>{project.title?.slice(0, 10)}{project.title.length > 10 && '...'}</TableCell>
+                    
+                    <TableCell>
+                      {project.short_description ? project.short_description.slice(0, 10) + (project.short_description.length > 10 ? '...' : '') : ''}
+                    </TableCell>
+                    <TableCell>
+                      {project.extra_description? project.extra_description.slice(0, 10) + (project.extra_description.length > 10 ? '...' : '') : ''}</TableCell>
                     <TableCell>{project.country}</TableCell>
                     <TableCell>{project.creation_date}</TableCell>
                     <TableCell>

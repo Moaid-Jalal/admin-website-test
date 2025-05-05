@@ -6,7 +6,7 @@ export interface Project {
         is_main: boolean;
         url: string;
     }[];
-    description: string;
+    extra_description: string;
     short_description: string;
     creation_date: string;
     country: string;

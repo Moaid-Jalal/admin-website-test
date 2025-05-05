@@ -40,14 +40,13 @@ export const projectsService = {
         } = useSWRInfinite<any[]>(getKey, fetcher, {
             revalidateOnFocus: false,
             revalidateOnReconnect: true,
-            dedupingInterval: 1000 * 60 * 10,
+            revalidateOnMount: true,
         });
 
         const refetch = async () => {
-            if (!error) return;
             for (let i = 0; i < size; i++) {
                 const key = getKey(i, i === 0 ? null : data?.[i - 1]);
-                if (key) await mutate(key, undefined);
+                if (key) await mutate(key);
             }
         };
 

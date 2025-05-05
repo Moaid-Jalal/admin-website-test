@@ -53,7 +53,7 @@ export default function NewCategoryPage() {
   });
 
   useEffect(() => {
-    if (languages && languages.length > 0) {
+    if (languages && languages.length > 0 && Object.keys(form.getValues("translations")).length === 0) {
       const defaultTranslations = languages.reduce((acc, lang) => ({
         ...acc,
         [lang.code]: {
@@ -69,7 +69,8 @@ export default function NewCategoryPage() {
 
       setActiveTab(languages[0].code);
     }
-  }, [languages, form]);
+    // eslint-disable-next-line
+  }, [languages]);
 
   const handleIconSelect = (url: string) => {
     setSelectedIcon(url);
@@ -97,6 +98,8 @@ export default function NewCategoryPage() {
 
       const response = await categoriesService.createCategory(payload);
 
+
+
       await mutate(`${API_BASE_URL}/categories`);
 
       toast({
@@ -107,6 +110,7 @@ export default function NewCategoryPage() {
 
       router.push('/admin/our-sectors/categories');
     } catch (error) {
+      console.log(error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to create category",

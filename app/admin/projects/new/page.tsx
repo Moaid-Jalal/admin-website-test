@@ -70,7 +70,7 @@ export default function NewProjectPage() {
       languages.length > 0 &&
       categories &&
       categories.length > 0 &&
-      form.getValues("category_id") === "" // فقط إذا لم يتم تعبئة النموذج بعد
+      form.getValues("category_id") === ""
     ) {
       const defaultTranslations = languages.reduce((acc, lang) => ({
         ...acc,

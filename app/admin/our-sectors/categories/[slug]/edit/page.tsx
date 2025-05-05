@@ -153,6 +153,8 @@ export default function EditCategoryPage({ params }: { params: { slug: string } 
       })
 
 
+
+
       const newValues: any = {
         // slug: changedFields.translations["en"].name || initialFormValues?.translations["en"].name,
         icon_svg_url: changedFields.icon_svg_url || initialFormValues?.icon_svg_url,
