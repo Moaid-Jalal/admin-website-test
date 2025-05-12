@@ -40,8 +40,9 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await loginService.login(values.email, values.password);
+      const res = await loginService.login(values.email, values.password);
 
+      localStorage.setItem('adminToken', res.token);
       toast({
         title: "Success",
         description: "Logged in successfully",
