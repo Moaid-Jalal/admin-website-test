@@ -92,7 +92,8 @@ const Navbar = () => {
       </SheetClose>
       <SheetClose asChild>
         <div className="w-full">
-          <Button 
+          <Button
+            onClick={logout}
             variant={'destructive'} 
             className="w-full justify-start"
             size="sm"
