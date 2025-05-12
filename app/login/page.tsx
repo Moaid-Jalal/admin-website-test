@@ -40,13 +40,13 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const res = await loginService.login(values.email, values.password);
+      await loginService.login(values.email, values.password);
 
-      localStorage.setItem('adminToken', res.token);
       toast({
         title: "Success",
         description: "Logged in successfully",
       });
+
       router.push('/admin');
     } catch (error: any) {
       setError(error.message);
