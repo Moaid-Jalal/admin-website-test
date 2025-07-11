@@ -43,6 +43,7 @@ export default function LoginPage() {
       const res = await loginService.login(values.email, values.password);
 
       localStorage.setItem('adminToken', res.token);
+
       toast({
         title: "Success",
         description: "Logged in successfully",
